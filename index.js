@@ -23,7 +23,7 @@ const credentialSchema = new mongoose.Schema({
 });
 const credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
-app.post("/sendemail",function(req, res){
+app.post("/api/sendemail",function(req, res){
     var msg = req.body.msg 
     console.log(msg) 
     var emaillist = req.body.emaillist 

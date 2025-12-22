@@ -8,7 +8,7 @@ const app = express()
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "https://bulk-mail-frontend-29im.vercel.app");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type: application/json");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -81,7 +81,9 @@ app.post("/sendemail",function(req, res){
 
             const PORT = process.env.PORT || 5000
 
-            app.listen(PORT, function(){ 
-                console.log("Server Started.....") 
-            })
+            if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log("Server Started...");
+  });
+}
             console.log("running in port",PORT)

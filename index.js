@@ -53,7 +53,7 @@ app.post("/sendemail",function(req, res){
              { 
                 for(var i=0; i<emaillist.length; i++) 
                     { 
-                        await transporter.sendMail( 
+                        await Primise.all(emaillist.map(email=> transporter.sendMail( 
                             { 
                                 from:"saara2991@gmail.com",
                                 to:emaillist[i], 
@@ -61,7 +61,7 @@ app.post("/sendemail",function(req, res){
                                 text:msg, 
                             } ) 
                             
-                           //console.log("Email sent to:"+emaillist[i]) 
+                         )) //console.log("Email sent to:"+emaillist[i]) 
                         } 
                         resolve("Success") 
                     }

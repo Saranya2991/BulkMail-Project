@@ -13,7 +13,14 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store"); // Prevent caching
+  next();
+});
+
 app.use(express.json())
+
+
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
 .then(function(){ 

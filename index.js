@@ -5,35 +5,17 @@ const nodemailer = require("nodemailer"); //Install nodemailer
 require("dotenv").config();
 
 const app = express() 
-// Custom CORS middleware to set additional headers
-const customCors = (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Use specific origin in production
-  // Another common pattern: Allow dynamic origin
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://bulk-mail-frontend-29im.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight request (OPTIONS)
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
-  // Proceed to next middleware or route
   next();
-};
-
-// Apply built-in CORS middleware (allowing all origins in this case)
-app.use(cors());
-
-// Apply custom CORS middleware for additional headers
-app.use(customCors);
-
-
+});
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 

@@ -1,6 +1,5 @@
 
 {
-  "version": 2,
   "builds": [
     {
       "src": "index.js",
@@ -9,8 +8,9 @@
   ],
   "routes": [
     {
-      "src": "/sendemail",
-      "dest": "/index.js"
+      "src": "/(.*)",
+      "dest": "/index.js",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     }
   ]
 }

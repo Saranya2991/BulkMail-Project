@@ -5,17 +5,14 @@ const nodemailer = require("nodemailer"); //Install nodemailer
 require("dotenv").config();
 
 const app = express() 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://bulk-mail-frontend-29im.vercel.app");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+// ===== CORS =====
+const corsOptions = {
+  origin: "https://bulk-mail-frontend-29im.vercel.app", // exact frontend URL
+  methods: ["POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+};
+app.use(cors(corsOptions));
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
@@ -32,13 +29,18 @@ const credentialSchema = new mongoose.Schema({
 });
 const credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
-app.post("/sendemail",function(req, res){
+app.post("/sendemail",async(req, res)=>{
     var msg = req.body.msg 
     console.log(msg) 
     var emaillist = req.body.emaillist 
     var subject = req.body.subject
+    if (!msg || !emaillist || !subject) {
+    return res.status(400).send("Missing required fields");
+  }
+    try{
+        const data = await Credential.find();
+    if (!data.length) return res.status(500).send("No email credentials found");
 
-    credential.find().then(function(data){
         //console.log(data[0].toJSON) 
         // Create a test account or replace with real credentials.
         const transporter = nodemailer.createTransport({ 
@@ -48,37 +50,23 @@ app.post("/sendemail",function(req, res){
                 pass: data[0].toJSON().pass, 
             }, 
         });
-        new Promise( async function(resolve,reject) {
-             try 
-             { 
-                for(var i=0; i<emaillist.length; i++) 
-                    { 
-                        await Primise.all(emaillist.map(email=> transporter.sendMail( 
-                            { 
-                                from:"saara2991@gmail.com",
-                                to:emaillist[i], 
-                                subject:subject, 
-                                text:msg, 
-                            } ) 
-                            
-                         )) //console.log("Email sent to:"+emaillist[i]) 
-                        } 
-                        resolve("Success") 
-                    }
-                    catch(error) 
-                    { 
-                        reject("Failed")
-                    } 
-                    }).then(function(){ 
-                        res.send(true) 
-                    }).catch(function(){ 
-                        res.send(false) 
-                    }) 
-                }).catch(function(error){ 
-                    console.log(error) 
-                }) 
-            })
+        await Promise.all(
+      emaillist.map((email) =>
+        transporter.sendMail({
+          from: data[0].user,
+          to: email,
+          subject,
+          text: msg,
+        })
+      )
+    );
 
+    res.send(true);
+  } catch (error) {
+    console.error("Error sending emails:", error);
+    res.send(false);
+  }
+});
             const PORT = process.env.PORT || 5000
 
             

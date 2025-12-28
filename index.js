@@ -36,7 +36,7 @@ app.post("/sendemail", async (req, res) => {
       return res.send(false)
     }
 
-    const data = await Credential.find()
+    const data = await credential.find()
     if (!data.length) return res.send(false)
 
     const transporter = nodemailer.createTransport({
@@ -61,7 +61,7 @@ app.post("/sendemail", async (req, res) => {
 
     res.send(true)
   } catch (error) {
-    console.error(error)
+    console.error("Send email error:", error)
     res.send(false)
             }
 })

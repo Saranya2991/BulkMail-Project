@@ -4,18 +4,19 @@ const mongoose = require("mongoose")
 const nodemailer = require("nodemailer"); //Install nodemailer 
 require("dotenv").config();
 
-const app = express() 
+const app = express(); 
 app.use(cors({
   origin: "https://bulk-mail-frontend-29im.vercel.app",
   credentials: true,
 }));
-app.use(express.json())
-
+app.use(express.json());
+let isConnected = false;
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
 .then(function(){ 
     console.log("Connected to DB") 
-}).catch(function(){ 
-    console.log("Failed to Connect") 
+    isConnected = true;
+}).catch(function(err){ 
+    console.log("Failed to Connect",err) 
 })
 
 
@@ -23,7 +24,7 @@ const credentialSchema = new mongoose.Schema({
     user: String,
     pass: String
 });
-const credential = mongoose.model("credential", credentialSchema, "bulkmail");
+const Credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
 
     
@@ -39,14 +40,14 @@ app.post("/sendemail", async (req, res) => {
       return res.json({ success: false, error: "Missing fields" })
     }
 
-    const data = await credential.find()
+    const data = await Credential.find()
    if (!data.length) return res.json({ success: false, error: "No credentials in DB" })
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: data[0].user,
-        pass: data[0].pass, // Must be Gmail App Password
+        pass: data[0].pass // Must be Gmail App Password
       },
     })
 
@@ -62,10 +63,10 @@ app.post("/sendemail", async (req, res) => {
       )
     )
 
-    res.json({ success: true })
+    return res.json({ success: true })
   } catch (error) {
     console.error("Send email error:", error)
-     res.json({ success: false, error: error.message })
+     return res.json({ success: false, error: error.message })
             }
 })
 

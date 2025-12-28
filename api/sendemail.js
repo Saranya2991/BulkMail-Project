@@ -1,80 +1,85 @@
-const express = require("express") 
-const cors = require("cors") 
-const mongoose = require("mongoose")
-const nodemailer = require("nodemailer"); //Install nodemailer 
-require("dotenv").config();
+const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
 
-const app = express(); 
-app.use(cors({
-  origin: "https://bulk-mail-frontend-29im.vercel.app",
-  credentials: true,
-}));
-app.use(express.json());
 let isConnected = false;
-mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
-.then(function(){ 
-    console.log("Connected to DB") 
-    isConnected = true;
-}).catch(function(err){ 
-    console.log("Failed to Connect",err) 
-})
 
+// --- Connect to MongoDB ---
+const connectToDB = async () => {
+  if (isConnected) return;
+  await mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  isConnected = true;
+};
 
+// --- Schema ---
 const credentialSchema = new mongoose.Schema({
-    user: String,
-    pass: String
+  user: String,
+  pass: String,
 });
-const Credential = mongoose.model("credential", credentialSchema, "bulkmail");
+const Credential = mongoose.models.Credential || mongoose.model("Credential", credentialSchema, "bulkmail");
 
-
-    
-app.post("/api/sendemail", async (req, res) => {
-    var msg = req.body.msg 
-    console.log(msg) 
-    var emaillist = req.body.emaillist 
-    var subject = req.body.subject
-  try {
-    const { msg, emaillist, subject } = req.body
-
-    if (!msg || !subject || !emaillist?.length) {
-      return res.json({ success: false, error: "Missing fields" })
-    }
-
-    const data = await Credential.find()
-   if (!data.length) return res.json({ success: false, error: "No credentials in DB" })
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: data[0].user,
-        pass: data[0].pass // Must be Gmail App Password
-      },
-    })
-
-    // Send emails in parallel
+// --- Helper: send emails in batches ---
+const sendEmailsInBatches = async (emails, batchSize, transporter, from, subject, msg) => {
+  for (let i = 0; i < emails.length; i += batchSize) {
+    const batch = emails.slice(i, i + batchSize);
     await Promise.all(
-      emaillist.map(email =>
+      batch.map(email =>
         transporter.sendMail({
-          from: data[0].user,
+          from,
           to: email,
-          subject: subject,
+          subject,
           text: msg,
         })
       )
-    )
+    );
+  }
+};
 
-    return res.json({ success: true })
+// --- Serverless handler ---
+module.exports = async (req, res) => {
+  try {
+    // Only POST
+    if (req.method !== "POST") {
+      return res.status(405).json({ success: false, error: "Method not allowed" });
+    }
+
+    // CORS headers
+    res.setHeader("Access-Control-Allow-Origin", "https://bulk-mail-frontend-29im.vercel.app");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,POST");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, X-Requested-With, Accept"
+    );
+
+    // Preflight
+    if (req.method === "OPTIONS") {
+      return res.status(200).end();
+    }
+
+    const { msg, emaillist, subject } = req.body;
+
+    if (!msg || !subject || !emaillist?.length) {
+      return res.status(400).json({ success: false, error: "Missing fields" });
+    }
+
+    await connectToDB();
+    const data = await Credential.find();
+    if (!data.length) return res.status(400).json({ success: false, error: "No credentials in DB" });
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: data[0].user, pass: data[0].pass },
+    });
+
+    // Send emails in batches of 50
+    await sendEmailsInBatches(emaillist, 50, transporter, data[0].user, subject, msg);
+
+    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Send email error:", error)
-     return res.json({ success: false, error: error.message })
-            }
-})
-
-            const PORT = process.env.PORT || 5000
-
-            
- 
-
-            console.log("running in port",PORT)
-
-            module.exports = app
+    console.error("Send email error:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};

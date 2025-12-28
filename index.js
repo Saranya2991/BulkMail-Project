@@ -74,3 +74,5 @@ app.post("/api/sendemail", async (req, res) => {
   });
 
             console.log("running in port",PORT)
+
+            module.exports = app

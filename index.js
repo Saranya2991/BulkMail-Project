@@ -46,7 +46,7 @@ app.post("/sendemail",function(req, res){
                         await Promise.all(emaillist.map(email=> transporter.sendMail( 
                             { 
                                 from:"saara2991@gmail.com",
-                                to:emaillist[i], 
+                                to:email, 
                                 subject:subject, 
                                 text:msg, 
                             } ) 

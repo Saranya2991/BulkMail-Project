@@ -22,52 +22,49 @@ const credentialSchema = new mongoose.Schema({
 });
 const credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
-app.post("api/sendemail",function(req, res){
+
+    
+app.post("/api/sendemail", async (req, res) => {
     var msg = req.body.msg 
     console.log(msg) 
     var emaillist = req.body.emaillist 
     var subject = req.body.subject
+  try {
+    const { msg, emaillist, subject } = req.body
 
-    credential.find().then(function(data){
-        //console.log(data[0].toJSON) 
-        // Create a test account or replace with real credentials.
-        const transporter = nodemailer.createTransport({ 
-            service:"gmail", 
-            auth: { 
-                user: data[0].user, 
-                pass: data[0].pass, 
-            }, 
-        });
-        new Promise( async function(resolve,reject) {
-             try 
-             { 
-                for(var i=0; i<emaillist.length; i++) 
-                    { 
-                        await Promise.all(emaillist.map(email=> transporter.sendMail( 
-                            { 
-                                from:"saara2991@gmail.com",
-                                to:emaillist[i], 
-                                subject:subject, 
-                                text:msg, 
-                            } ) 
-                            
-                         )) //console.log("Email sent to:"+emaillist[i]) 
-                        } 
-                        resolve("Success") 
-                    }
-                    catch(error) 
-                    { 
-                        reject("Failed")
-                    } 
-                    }).then(function(){ 
-                        res.send(true) 
-                    }).catch(function(){ 
-                        res.send(false) 
-                    }) 
-                }).catch(function(error){ 
-                    console.log(error) 
-                }) 
-            })
+    if (!msg || !subject || !emaillist?.length) {
+      return res.send(false)
+    }
+
+    const data = await Credential.find()
+    if (!data.length) return res.send(false)
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: data[0].user,
+        pass: data[0].pass, // Must be Gmail App Password
+      },
+    })
+
+    // Send emails in parallel
+    await Promise.all(
+      emaillist.map(email =>
+        transporter.sendMail({
+          from: data[0].user,
+          to: email,
+          subject: subject,
+          text: msg,
+        })
+      )
+    )
+
+    res.send(true)
+  } catch (error) {
+    console.error(error)
+    res.send(false)
+            }
+})
 
             const PORT = process.env.PORT || 5000
 

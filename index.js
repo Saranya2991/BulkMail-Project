@@ -5,7 +5,10 @@ const nodemailer = require("nodemailer"); //Install nodemailer
 require("dotenv").config();
 
 const app = express() 
-app.use(cors())
+app.use(cors({
+  origin: "https://bulk-mail-frontend-29im.vercel.app",
+  credentials: true,
+}));
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 

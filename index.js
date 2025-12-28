@@ -33,11 +33,11 @@ app.post("/sendemail", async (req, res) => {
     const { msg, emaillist, subject } = req.body
 
     if (!msg || !subject || !emaillist?.length) {
-      return res.send(false)
+      return res.json({ success: false, error: "Missing fields" })
     }
 
     const data = await credential.find()
-    if (!data.length) return res.send(false)
+   if (!data.length) return res.json({ success: false, error: "No credentials in DB" })
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -59,10 +59,10 @@ app.post("/sendemail", async (req, res) => {
       )
     )
 
-    res.send(true)
+    res.json({ success: true })
   } catch (error) {
     console.error("Send email error:", error)
-    res.send(false)
+     res.json({ success: false, error: error.message })
             }
 })
 

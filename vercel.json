@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "builds": [{ "src": "sendemail.js", "use": "@vercel/node" }],
-  "rewrites": [{ "source": "/(.*)", "destination": "/sendemail.js" }],
+  "builds": [{ "src": "index.js", "use": "@vercel/node" }],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.js" }],
   "headers": [
     {
       "source": "/(.*)",

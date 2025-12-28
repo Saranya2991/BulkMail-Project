@@ -34,8 +34,8 @@ app.post("/sendemail",function(req, res){
         const transporter = nodemailer.createTransport({ 
             service:"gmail", 
             auth: { 
-                user: data[0].toJSON().user, 
-                pass: data[0].toJSON().pass, 
+                user: data[0].user, 
+                pass: data[0].pass, 
             }, 
         });
         new Promise( async function(resolve,reject) {
@@ -43,7 +43,7 @@ app.post("/sendemail",function(req, res){
              { 
                 for(var i=0; i<emaillist.length; i++) 
                     { 
-                        await Primise.all(emaillist.map(email=> transporter.sendMail( 
+                        await Promise.all(emaillist.map(email=> transporter.sendMail( 
                             { 
                                 from:"saara2991@gmail.com",
                                 to:emaillist[i], 

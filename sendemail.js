@@ -24,7 +24,7 @@ const credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
 
     
-app.post("/sendemail", async (req, res) => {
+app.post("/api/sendemail", async (req, res) => {
     var msg = req.body.msg 
     console.log(msg) 
     var emaillist = req.body.emaillist 

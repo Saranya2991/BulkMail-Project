@@ -19,6 +19,10 @@ mongoose.connect(process.env.MONGODB_URI) //passkey DB name
 
 const credential = mongoose.model("credential", {}, "bulkmail");
 
+app.get('/',(req,res)=>{
+    res.send("Bulk mail backend service is running");
+})
+
 app.post("/sendemail",function(req, res){
     var msg = req.body.msg 
     console.log(msg) 

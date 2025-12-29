@@ -5,17 +5,7 @@ const nodemailer = require("nodemailer"); //Install nodemailer
 require("dotenv").config();
 
 const app = express() 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "https://bulk-mail-frontend-29im.vercel.app");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
+app.use(cors())
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
@@ -26,13 +16,10 @@ mongoose.connect(process.env.MONGODB_URI) //passkey DB name
 })
 
 
-const credentialSchema = new mongoose.Schema({
-    user: String,
-    pass: String
-});
-const credential = mongoose.model("credential", credentialSchema, "bulkmail");
 
-app.get("/sendemail",function(req, res){
+const credential = mongoose.model("credential", {}, "bulkmail");
+
+app.post("/sendemail",function(req, res){
     var msg = req.body.msg 
     console.log(msg) 
     var emaillist = req.body.emaillist 
@@ -53,7 +40,7 @@ app.get("/sendemail",function(req, res){
              { 
                 for(var i=0; i<emaillist.length; i++) 
                     { 
-                        await Primise.all(emaillist.map(email=> transporter.sendMail( 
+                        await transporter.sendMail( 
                             { 
                                 from:"saara2991@gmail.com",
                                 to:emaillist[i], 
@@ -61,7 +48,7 @@ app.get("/sendemail",function(req, res){
                                 text:msg, 
                             } ) 
                             
-                         )) //console.log("Email sent to:"+emaillist[i]) 
+                         //console.log("Email sent to:"+emaillist[i]) 
                         } 
                         resolve("Success") 
                     }
@@ -86,4 +73,4 @@ app.get("/sendemail",function(req, res){
     console.log("Server Started...");
   });
 
-            console.log("running in port",PORT)
+console.log("running in port",PORT)

@@ -50,6 +50,9 @@ app.post("/sendemail", async (req, res) => {
         pass: data[0].pass, // GMAIL APP PASSWORD
       },
     });
+    await transporter.verify();
+    console.log("SMTP VERIFIED SUCCESSFULLY");
+
 
     /* ================== SEND EMAILS ================== */
     for (const email of emaillist) {

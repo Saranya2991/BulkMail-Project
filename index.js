@@ -5,7 +5,12 @@ const nodemailer = require("nodemailer"); //Install nodemailer
 require("dotenv").config();
 
 const app = express() 
-app.use(cors())
+app.use(cors({
+  origin: "https://bulkmail-frontend-vkce.onrender.com",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+app.options("*", cors());
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 

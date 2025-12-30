@@ -51,7 +51,7 @@ app.post("/sendemail",function(req, res){
                     { 
                         await transporter.sendMail( 
                             { 
-                                from:"saara2991@gmail.com",
+                                from:data[0].toJSON().user,
                                 to:emaillist[i], 
                                 subject:subject, 
                                 text:msg, 

@@ -10,7 +10,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
-app.options("*", cors());
+
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI) //passkey DB name 

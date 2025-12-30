@@ -13,7 +13,10 @@ app.use(cors({
 
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}) //passkey DB name 
 .then(function(){ 
     console.log("Connected to DB") 
 }).catch(function(){ 
@@ -40,8 +43,8 @@ app.post("/sendemail",function(req, res){
         const transporter = nodemailer.createTransport({ 
             service:"gmail", 
             auth: { 
-                user: "saara2991@gmail.com", 
-                pass: "yndp tfgx zufc cjzd", 
+                user: data[0].toJSON().user, 
+                pass: data[0].toJSON().pass, 
             }, 
         });
         new Promise( async function(resolve,reject) {
@@ -51,7 +54,7 @@ app.post("/sendemail",function(req, res){
                     { 
                         await transporter.sendMail( 
                             { 
-                                from:"saara2991@gmail.com",
+                                from:data[0].toJSON().user,
                                 to:emaillist[i], 
                                 subject:subject, 
                                 text:msg, 

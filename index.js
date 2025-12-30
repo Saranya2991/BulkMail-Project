@@ -13,10 +13,7 @@ app.use(cors({
 
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}) //passkey DB name 
+mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
 .then(function(){ 
     console.log("Connected to DB") 
 }).catch(function(){ 

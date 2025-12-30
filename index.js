@@ -13,12 +13,10 @@ app.use(cors({
 
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI) //passkey DB name 
-.then(function(){ 
-    console.log("Connected to DB") 
-}).catch(function(){ 
-    console.log("Failed to Connect") 
-})
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(err => console.error("MongoDB connection failed:", err));
+
 
 
 
@@ -28,58 +26,53 @@ app.get('/',(req,res)=>{
     res.send("Bulk mail backend service is running");
 })
 
-app.post("/sendemail",function(req, res){
-    var msg = req.body.msg 
-    console.log(msg) 
-    var emaillist = req.body.emaillist 
-    var subject = req.body.subject
+app.post("/sendemail", async (req, res) => {
+  try {
+    const { subject, msg, emaillist } = req.body;
 
-    credential.find().then(function(data){
-        //console.log(data[0].toJSON) 
-        // Create a test account or replace with real credentials.
-        const transporter = nodemailer.createTransport({ 
-            service:"gmail", 
-            auth: { 
-                user: data[0].toJSON().user, 
-                pass: data[0].toJSON().pass, 
-            }, 
-        });
-        new Promise( async function(resolve,reject) {
-             try 
-             { 
-                for(var i=0; i<emaillist.length; i++) 
-                    { 
-                        await transporter.sendMail( 
-                            { 
-                                from:data[0].toJSON().user,
-                                to:emaillist[i], 
-                                subject:subject, 
-                                text:msg, 
-                            } ) 
-                            
-                         //console.log("Email sent to:"+emaillist[i]) 
-                        } 
-                        resolve("Success") 
-                    }
-                    catch(error) 
-                    { 
-                        reject("Failed")
-                    } 
-                    }).then(function(){ 
-                        res.send(true) 
-                    }).catch(function(){ 
-                        res.send(false) 
-                    }) 
-                }).catch(function(error){ 
-                    console.log(error) 
-                }) 
-            })
+    if (!subject || !msg || !emaillist || !emaillist.length) {
+      return res.status(400).send(false);
+    }
 
-            const PORT = process.env.PORT || 5000
+    const data = await Credential.find();
+    if (!data.length) {
+      console.error("No email credentials found in DB");
+      return res.status(500).send(false);
+    }
 
-            
-  app.listen(PORT, () => {
-    console.log("Server Started...");
-  });
+    /* ================== MAIL TRANSPORT ================== */
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: data[0].user,
+        pass: data[0].pass, // GMAIL APP PASSWORD
+      },
+    });
 
-console.log("running in port",PORT)
+    /* ================== SEND EMAILS ================== */
+    for (const email of emaillist) {
+      await transporter.sendMail({
+        from: data[0].user,
+        to: email,
+        subject: subject,
+        text: msg,
+      });
+    }
+
+    console.log("Emails sent successfully");
+    res.send(true);
+
+  } catch (error) {
+    console.error("EMAIL SEND ERROR:", error);
+    res.send(false);
+  }
+});
+
+/* ================== SERVER ================== */
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
+});

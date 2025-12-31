@@ -17,9 +17,6 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("MongoDB connection failed:", err));
 
-
-
-
 const credential = mongoose.model("credential", {}, "bulkmail");
 
 app.get('/',(req,res)=>{
@@ -40,21 +37,15 @@ app.post("/sendemail", async (req, res) => {
       return res.status(500).send(false);
     }
 
-    /* ================== MAIL TRANSPORT ================== */
+    
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
       auth: {
         user: data[0].user,
         pass: data[0].pass, // GMAIL APP PASSWORD
       },
     });
-    await transporter.verify();
-    console.log("SMTP VERIFIED SUCCESSFULLY");
-
-
-    /* ================== SEND EMAILS ================== */
+    
     for (const email of emaillist) {
       await transporter.sendMail({
         from: data[0].user,
@@ -73,7 +64,6 @@ app.post("/sendemail", async (req, res) => {
   }
 });
 
-/* ================== SERVER ================== */
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

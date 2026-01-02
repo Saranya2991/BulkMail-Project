@@ -41,19 +41,18 @@ app.post("/sendemail", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "saara2991@gmail.com",
-        pass: "yndp tfgx zufc cjzd", // GMAIL APP PASSWORD
+        user: data[0].user,
+        pass: data[0].pass, // GMAIL APP PASSWORD
       },
     });
     
     await Promise.all(
   emaillist.map(email =>
     transporter.sendMail({ 
-      from: "saara2991@gmail.com", 
+      from: data[0].user, 
       to: email, 
       subject:subject, 
-      text: msg 
-    })
+      text: msg })
   )
 );
     

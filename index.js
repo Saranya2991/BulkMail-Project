@@ -7,15 +7,18 @@ require("dotenv").config();
 const app = express() 
 app.use(cors({
   origin: "https://bulkmail-frontend-vkce.onrender.com",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
 }));
 
+app.options("*", cors());
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("MongoDB connection failed:", err));
 
-const credential = mongoose.model("credential", {}, "bulkmail");
+const Credential = mongoose.model("credential", {}, "bulkmail");
 
 app.get('/',(req,res)=>{
     res.send("Bulk mail backend service is running");
@@ -29,7 +32,7 @@ app.post("/sendemail", async (req, res) => {
       return res.status(400).send(false);
     }
 
-    const data = await credential.find();
+    const data = await Credential.find();
     if (!data.length) {
       console.error("No email credentials found in DB");
       return res.status(500).send(false);

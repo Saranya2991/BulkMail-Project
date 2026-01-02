@@ -46,14 +46,17 @@ app.post("/sendemail", async (req, res) => {
       },
     });
     
-    for (const email of emaillist) {
-      await transporter.sendMail({
-        from: data[0].user,
-        to: email,
-        subject: subject,
-        text: msg,
-      });
-    }
+    await Promise.all(
+  emaillist.map(email =>
+    transporter.sendMail({ 
+      from: data[0].user, 
+      to: email, 
+      subject:subject, 
+      text: msg 
+    })
+  )
+);
+    
 
     console.log("Emails sent successfully");
     res.json(true);

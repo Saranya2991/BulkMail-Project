@@ -41,10 +41,13 @@ app.post("/sendemail", async (req, res) => {
     
     const transporter = nodemailer.createTransport({
       service:"gmail",
+      host: "smtp.gmail.com",
+       port: 465,
+      secure: true,
       auth: {
         user: data[0].user,
         pass: data[0].pass, // GMAIL APP PASSWORD
-      },
+      },connectionTimeout: 10000,
     });
     
     

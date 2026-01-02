@@ -32,10 +32,10 @@ app.post("/sendemail", async (req, res) => {
     }
 
     const data = await Credential.find();
-    if (!data.length) {
+    if (!data.length) 
       console.error("No email credentials found in DB");
       return res.status(500).send(false);
-    }
+    
 
     
     const transporter = nodemailer.createTransport({
@@ -47,7 +47,7 @@ app.post("/sendemail", async (req, res) => {
     });
     
     for (const email of emaillist) {
-      transporter.sendMail({
+      await transporter.sendMail({
         from: data[0].user,
         to: email,
         subject: subject,

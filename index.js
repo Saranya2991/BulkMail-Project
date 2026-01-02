@@ -60,11 +60,11 @@ app.post("/sendemail", async (req, res) => {
     );
 
     console.log("Emails sent successfully");
-    res.send(true);
+    res.json(true);
 
   } catch (error) {
     console.error("EMAIL SEND ERROR:", error);
-    res.send(false);
+    res.json(false);
   }
 });
 

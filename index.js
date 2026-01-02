@@ -1,6 +1,6 @@
 const express = require("express") 
 const cors = require("cors") 
-const mongoose = require("mongoose")
+
 const nodemailer = require("nodemailer"); //Install nodemailer 
 require("dotenv").config();
 
@@ -13,11 +13,7 @@ app.use(cors({
 
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.error("MongoDB connection failed:", err));
 
-const Credential = mongoose.model("credential", {}, "bulkmail");
 
 app.get('/',(req,res)=>{
     res.send("Bulk mail backend service is running");
@@ -31,24 +27,23 @@ app.post("/sendemail", async (req, res) => {
       return res.status(400).send(false);
     }
 
-    const data = await Credential.find();
-    if (!data.length) 
-      console.error("No email credentials found in DB");
-      return res.status(500).send(false);
+    const { GMAIL_USER, GMAIL_PASS } = process.env;
+    if (!GMAIL_USER || !GMAIL_PASS) 
+      return res.status(500).json({ success: false, error: "Gmail credentials not set" });
     
 
     
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: data[0].user,
-        pass: data[0].pass, // GMAIL APP PASSWORD
+        user: GMAIL_USER,
+        pass: GMAIL_PASS, // GMAIL APP PASSWORD
       },
     });
     
     for (const email of emaillist) {
       await transporter.sendMail({
-        from: data[0].user,
+        from:GMAIL_USER,
         to: email,
         subject: subject,
         text: msg,

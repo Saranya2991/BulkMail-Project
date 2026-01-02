@@ -7,8 +7,6 @@ require("dotenv").config();
 const app = express() 
 app.use(cors({
   origin: "https://bulkmail-frontend-vkce.onrender.com",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
 }));
 
 app.use(express.json())
@@ -31,7 +29,7 @@ app.post("/sendemail", async (req, res) => {
       return res.status(400).send(false);
     }
 
-    const data = await Credential.find();
+    const data = await credential.find();
     if (!data.length) {
       console.error("No email credentials found in DB");
       return res.status(500).send(false);
@@ -39,21 +37,24 @@ app.post("/sendemail", async (req, res) => {
 
     
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
+      service:"gmail",
       auth: {
         user: data[0].user,
         pass: data[0].pass, // GMAIL APP PASSWORD
       },
     });
     
-    for (const email of emaillist) {
-      await transporter.sendMail({
-        from: data[0].user,
-        to: email,
-        subject: subject,
-        text: msg,
-      });
-    }
+    
+      await Promise.all(
+      emaillist.map(email =>
+        transporter.sendMail({
+          from: data[0].user,
+          to: email,
+          subject,
+          text: msg,
+        })
+      )
+    );
 
     console.log("Emails sent successfully");
     res.send(true);

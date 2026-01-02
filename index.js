@@ -7,10 +7,9 @@ require("dotenv").config();
 const app = express() 
 app.use(cors({
   origin: "https://bulkmail-frontend-vkce.onrender.com",
-  methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
 }));
-
 
 app.use(express.json())
 
@@ -40,27 +39,21 @@ app.post("/sendemail", async (req, res) => {
 
     
     const transporter = nodemailer.createTransport({
-      service:"gmail",
-      host: "smtp.gmail.com",
-       port: 465,
-      secure: true,
+      service: "gmail",
       auth: {
         user: data[0].user,
         pass: data[0].pass, // GMAIL APP PASSWORD
-      },connectionTimeout: 10000,
+      },
     });
     
-    
-      await Promise.all(
-      emaillist.map(email =>
-        transporter.sendMail({
-          from: data[0].user,
-          to: email,
-          subject,
-          text: msg,
-        })
-      )
-    );
+    for (const email of emaillist) {
+      transporter.sendMail({
+        from: data[0].user,
+        to: email,
+        subject: subject,
+        text: msg,
+      });
+    }
 
     console.log("Emails sent successfully");
     res.json(true);

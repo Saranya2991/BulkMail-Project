@@ -11,7 +11,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type"],
 }));
 
-app.options("*", cors());
+
 app.use(express.json())
 
 mongoose.connect(process.env.MONGODB_URI)
